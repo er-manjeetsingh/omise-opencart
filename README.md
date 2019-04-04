@@ -1,17 +1,12 @@
 <p align="center"><a href='https://www.omise.co'><img src='https://cdn.omise.co/assets/omise-logo-with-text.svg' height='60'></a></p>
 
-**Omise OpenCart** is the official payment extension which provides support for Omise payment gateway for store builders working on the OpenCart platform.
+This is a fork of the official **Omise Payment** payment extension which provides support for Omise payment gateway for store builders working with **OpenCart** version **3.x**.
 
-## Supported Versions
-
-Our aim is to support as many versions of OpenCart as we can.  
 
 **Here's the list of versions we tested on:**
 
-- OpenCart 2.0.3.1, PHP 5.6.28 and 7.0.15
+- OpenCart 3.x
 
-**Can't find the version you're looking for?**  
-Submit your requirement as an issue to [GitHub's issue channel](https://github.com/omise/omise-opencart/issues).
 
 ## Getting Started
 
@@ -21,7 +16,7 @@ Submit your requirement as an issue to [GitHub's issue channel](https://github.c
 
 The steps below are the method to install the extension manually. This method requires the privilege to access your OpenCart file on your site.
 
-1. Download the [Omise OpenCart latest version](https://github.com/omise/omise-opencart/archive/master.zip).
+1. Download the [Omise OpenCart latest version](https://github.com/er-manjeetsingh/omise-opencart).
 2. Extract the file that you downloaded. After extracted the file, you will found a directory, **src**. Copy **all directories** that inside the directory, src, and place it into the root directory of your OpenCart site.
 <p align="center"><img width="652" alt="Omise OpenCart src directory" src="https://cloud.githubusercontent.com/assets/4145121/24198843/1c14c870-0f3a-11e7-83a2-5969fe04a839.png"></p>
 
@@ -97,10 +92,10 @@ Learn more about [pull request](https://help.github.com/articles/about-pull-requ
 
 ### Submit the issue
 
-To report problems, feel free to submit the issue through [GitHub's issue channel](https://github.com/omise/omise-opencart/issues) by following the [Create an Issue Guideline](https://guides.github.com/activities/contributing-to-open-source/#contributing).
+To report problems, feel free to submit the issue through [GitHub's issue channel](https://github.com/er-manjeetsingh/omise-opencart/issues) by following the [Create an Issue Guideline](https://guides.github.com/activities/contributing-to-open-source/#contributing).
 
 Learn more about [issue](https://guides.github.com/features/issues).
 
 ## License
 
-Omise OpenCart is open source software released under the [MIT License](https://github.com/omise/omise-opencart/blob/master/LICENSE).
+This is open source software released under the [MIT License](https://github.com/omise/omise-opencart/blob/master/LICENSE).
