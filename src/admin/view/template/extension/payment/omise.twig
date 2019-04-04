@@ -1,0 +1,434 @@
+
+{{ header }} {{ column_left }}
+
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+        <button type="submit" onclick="$('#form-setting').submit();" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
+        {% if is_admin %}
+        <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a>
+        {% endif %}
+      </div>
+
+      <h1>{{ heading_title }}</h1>
+
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li><a href="{{ breadcrumb['href'] }}">{{ breadcrumb['text'] }}</a></li>
+        {% endfor %}
+      </ul>
+      
+    </div>
+  </div> <!-- /END .page-header -->
+
+  <div class="container-fluid">
+    {% if error_warning %}
+      <div class="alert alert-danger">
+        <i class="fa fa-exclamation-circle"></i>
+        {% if error_warning is iterable %}
+          {% for error, message in error_warning %}
+            {{ message }}
+          {% endfor %}
+        {% else %}
+          {{ error_warning }}
+        {% endif %}
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+      </div>
+    {% endif %}
+    {% if success %}
+      <div class="alert alert-success"><i class="fa fa-check-circle"></i> {{ success }}
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+      </div>
+    {% endif %}
+
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#tab-dashboard" data-toggle="tab">{{ label_tab_dashboard }}</a></li>
+      <li><a href="#tab-setting" data-toggle="tab">{{ label_tab_setting }}</a></li>
+      {% if is_admin %}
+      <li>
+        <a href="#tab-update" data-toggle="tab">{{ label_tab_plugin_version }}
+          <i style="display: none;" id="tab-update-spin" class="fa fa-spinner fa-spin"></i>
+          <span id="icon-has-update" style="display: none;" class="text-danger">(<i class="fa fa-bell"></i> 1)</span>
+          <span id="icon-up-to-date" style="display: none;" class="text-success">(<i class="fa fa-check"></i>)</span>
+          <span id="icon-has-error" style="display: none;" class="text-danger"><i class="fa fa-exclamation"></i></span>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+
+    <div class="tab-content">
+      <!-- Dashboard tab -->
+      <div class="tab-pane active in" id="tab-dashboard">
+        {% if  omise_dashboard['error'] %}
+            {% if omise_dashboard['error'] is iterable %}
+              {% for error, message in omise_dashboard['error'] %}
+                <div class="alert alert-danger">
+                  <i class="fa fa-exclamation-circle"></i>
+                  {{ message }}
+                  <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
+              {% endfor %}
+            {% else %}
+            <div class="alert alert-danger">
+              <i class="fa fa-exclamation-circle"></i>
+              {{ omise_dashboard['error'] }}
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+          {% endif %}
+        {% endif %}
+
+        {% if  omise_dashboard['enabled'] and not omise_dashboard['error'] %}
+
+          {% if omise_dashboard['warning'] %}
+            {% if omise_dashboard['warning'] is iterable %}
+                {% for error, message in omise_dashboard['warning'] %}
+                  <div class="alert alert-warning">
+                    <i class="fa fa-exclamation-circle"></i>
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                  </div>
+                {% endfor %}
+            {% else %}
+              <div class="alert alert-warning">
+                <i class="fa fa-exclamation-circle"></i>
+                {{ omise_dashboard['warning'] }}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+              </div>
+            {% endif %}
+          {% endif %}
+
+          <div class="box">
+            <div class="content">
+              <!-- Account Info -->
+              <div class="omise-account-info omise-dashboard">
+                <dl>
+                  <!-- Account email -->
+                  <dt>{{ label_dashboard_account }}</dt>
+                  <dd>{{ omise_dashboard['email'] }}</dd>
+
+                  <!-- Account status -->
+                  <dt>{{ label_dashboard_mode }}: </dt>
+                  <dd>
+                    <strong>
+                    {% if omise_dashboard['livemode'] is defined %}
+                      <span class="livemode-label">{{ text_mode_live }}</span>
+                    {% else %}
+                      <span class="testmode-label">{{ text_mode_test }}</span>
+                    {% endif %}
+
+                    </strong></dd>
+
+                  <!-- Current Currency -->
+                  <dt>{{ label_dashboard_currency }}: </dt>
+                  <dd>{{ omise_dashboard['currency'] }}</dd>
+                </dl>
+              </div>
+
+              <!-- Balance -->
+              <div class="omise-balance omise-clearfix">
+                <div class="left"><span class="omise-number">{{ OmisePluginHelperCurrency.format(omise_dashboard['currency'], omise_dashboard['total']) }}</span><br/>{{ label_dashboard_total_balance }}</div>
+                <div class="right"><span class="omise-number">{{ OmisePluginHelperCurrency.format(omise_dashboard['currency'], omise_dashboard['available']) }}</span><br/>{{ label_dashboard_transferable_balance }}</div>
+              </div>
+
+              <!-- Charge History -->
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h3 class="panel-title"><i class="fa fa-list"></i> {{ label_dashboard_transactions_history }}</h3>
+                </div>
+                <div class="panel-body">
+                  <ul class="nav nav-tabs">
+                    <li class="active"><a href="#tab-charge-history" data-toggle="tab">{{ label_tab_charge }}</a></li>
+                    {% if is_admin %}
+                    <li><a href="#tab-transfer-history" data-toggle="tab">{{ label_tab_transfer }}</a></li>
+                    {% endif %}
+                  </ul>
+
+                  <div class="tab-content">
+                    <!-- Tab Charge -->
+                    <div class="tab-pane active in" id="tab-charge-history">
+                      <form id="omise-transfer" method="post" action="{{ transfer_url }}">
+                        <div class="table-responsive">
+                          <table class="table table-bordered table-hover table-striped">
+                            <thead>
+                              <tr>
+                                <td>{{ label_charge_table_amount }}</td>
+                                <td>{{ label_charge_table_id }}</td>
+                                <td width="8%">{{ label_charge_table_authorized }}</td>
+                                <td width="8%">{{ label_charge_table_paid }}</td>
+                                <td>{{ label_charge_table_failure_message }}</td>
+                                <td class="text-center" width="15%">{{ label_charge_table_created }}</td>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {% for key, value in omise_dashboard['charge_data'] %}
+                                <tr>
+                                  <td><strong class="{{ value['failure_code'] ? 'text-danger' : ((not value['authorized'] or not value['captured']) ? 'text-warning' : 'text-success') }}">{{ OmisePluginHelperCurrency.format(omise_dashboard['currency'], value['amount']) }}</strong></td>
+                                  <td><a href="https://dashboard.omise.co/{{ value['livemode'] ? 'live' : 'test' }}/charges/{{ value['id'] }}">{{ value['id'] }}</a></td>
+                                  <td>{{ value['authorized'] ? '<strong class="text-success">Yes</strong>' : 'No' }}</td>
+                                  <td>{{ value['captured'] ? '<strong class="text-success">Yes</strong>' : 'No' }}</td>
+                                  <td>
+                                    {% if value['failure_code'] is defined %}
+                                      ( {{ value['failure_code'] }} ) {{ value['failure_code'] }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                  </td>
+                                  <td class="text-center">{{ value['creatyed']|date('M d, Y H:i') }}</td>
+                                </tr>
+                              {% endfor %}
+                            </tbody>
+                          </table>
+                        </div>
+                      </form>
+                    </div>
+
+                    <!-- Tab Transfer -->
+                    <div class="tab-pane fade" id="tab-transfer-history">
+                      <form id="omise-transfer" method="post" action="{{ transfer_url }}">
+
+                        <div class="table-responsive">
+                          <table class="table table-bordered table-hover">
+                            <thead>
+                              <tr>
+                                <td>{{ label_transfer_table_amount }}</td>
+                                <td>{{ label_transfer_table_id }}</td>
+                                <td>{{ label_transfer_table_sent }}</td>
+                                <td>{{ label_transfer_table_paid }}</td>
+                                <td>{{ label_transfer_table_failure_message }}</td>
+                                <td class="text-center" width="15%">{{ label_transfer_table_created }}</td>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {% for key, value in omise_dashboard['transfer_data'] %}
+                                <tr>
+                                  <td><strong class="{{ value['failure_code'] ? 'text-danger' : ((not value['sent'] or not value['paid']) ? 'text-warning' : 'text-success') }}">{{ OmisePluginHelperCurrency.format(omise_dashboard['currency'], value['amount']) }}</strong></td>
+                                  <td><a href="https://dashboard.omise.co/{{ value['livemode'] ? 'live' : 'test' }}/transfers//{{ value['id'] }}">{{ value['id'] }}</a></td>
+                                  <td>{{ value['sent'] ? '<strong class="text-success">Yes</strong>' : 'No' }}</td>
+                                  <td>{{ value['paid'] ? '<strong class="text-success">Yes</strong>' : 'No' }}</td>
+<td>{% if value['failure_code'] is defined %}
+  ( {{ value['failure_code'] }} ) {{ value['failure_code'] }}
+  {% else %}
+  -
+  {% endif %}</td>
+                                  <td class="text-center">{{value['created']|date('M d, Y H:i') }}</td>
+                                </tr>
+                              {% endfor %}
+                              <tr>
+                                <td colspan="5" class="text-right"><input style="width: 25%; float:right;" class="form-control" min="0" type="number" step="0.01" name="transfer_amount" placeholder="{{ label_transfer_amount_field_placeholder }}"></td>
+                                <td class="text-center">
+                                  <button type="submit" id="button-transfer" class="btn btn-primary">{{ button_create_transfer }}&nbsp;&nbsp;<i class="fa fa-chevron-right"></i></button>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div> <!-- /END .content -->
+          </div> <!-- /END .box -->
+        {% endif %}
+      </div>
+
+      <!-- Setting tab -->
+      <div class="tab-pane fade" id="tab-setting">
+        <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-setting" class="form-horizontal">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title"><i class="fa fa-pencil"></i>{{ label_setting_module_config }}</h3>
+            </div>
+
+            <div class="panel-body">
+              <!-- Module status -->
+              <div class="form-group required">
+                <label class="col-sm-2 control-label" for="omise_status">{{ label_setting_module_status }}</label>
+                <div class="col-sm-10">
+                  <select name="payment_omise_status" class="form-control">
+                    <option value="1" {{ payment_omise_status ? 'selected="selected"' : '' }}>{{ text_enabled }}</option>
+                    <option value="0" {{ not payment_omise_status ? 'selected="selected"' : '' }}>{{ text_disabled }}</option>
+                  </select>
+                </div>
+              </div> <!-- /END Module status (.form-group) -->
+
+              <!-- Payment method title -->
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="omise_payment_title">{{ label_omise_payment_title }}</label>
+                <div class="col-sm-10">
+                  <input type="text" name="payment_omise_payment_title" value="{{ payment_omise_payment_title }}" id="omise_payment_title" class="form-control" />
+                </div>
+              </div> <!-- /END Payment method title -->
+
+              <!-- Live mode -->
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for=""></label>
+                <div class="col-sm-10">
+                  <label class="radio-inline">
+                    <input type="radio" name="payment_omise_test_mode" {{ payment_omise_test_mode == 1 ? 'checked="checked"' : '' }} value="1" />
+                    {{ label_omise_mode_test }}
+                  </label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  <label class="radio-inline">
+                    <input type="radio" name="payment_omise_test_mode" {{ payment_omise_test_mode == 0 ? 'checked="checked"' : '' }} value="0" />
+                    {{ label_omise_mode_live }}
+                  </label>
+                </div>
+              </div> <!-- /END Live mode (.form-group) -->
+            </div> <!-- /END .panel-body -->
+          </div> <!-- /END .panel.panel-default -->
+
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title"><i class="fa fa-pencil"></i> {{ label_setting_key_config }}</h3>
+            </div>
+            <div class="panel-body">
+              <!-- Test public key -->
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="omise_payments_public_key_test">{{ label_omise_pkey_test }}</label>
+                <div class="col-sm-10">
+                  <input size="40" type="text" name="payment_omise_pkey_test" value="{{ payment_omise_pkey_test }}" id="omise_payments_public_key_test" class="form-control" />
+                </div>
+              </div>
+
+              <!-- Test secret key -->
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="omise_payments_secret_key_test">{{ label_omise_skey_test }}</label>
+                <div class="col-sm-10">
+                  <input size="40" type="password" name="payment_omise_skey_test" value="{{ payment_omise_skey_test }}" id="omise_payments_secret_key_test" class="form-control" />
+                </div>
+              </div>
+
+              <!-- Live public key -->
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="omise_payments_public_key">{{ label_omise_pkey }}</label>
+                <div class="col-sm-10">
+                  <input type="text" name="payment_omise_pkey" value="{{ payment_omise_pkey }}" id="omise_payments_public_key" class="form-control" />
+                </div>
+              </div>
+
+              <!-- Live secret key -->
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="omise_payments_public_key">{{ label_omise_skey }}</label>
+                <div class="col-sm-10">
+                  <input type="password" name="payment_omise_skey" value="{{ payment_omise_skey }}" id="omise_payments_secret_key" class="form-control" />
+                </div>
+              </div>
+            </div>
+          </div> <!-- /END .panel.panel-default -->
+
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title"><i class="fa fa-pencil"></i> {{ label_setting_omise_config }}</h3>
+            </div>
+            <div class="panel-body">
+              <!-- 3D-Secure -->
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="omise_payments_3ds">{{ label_omise_3ds }}</label>
+                <div class="col-sm-10">
+                  <div class="checkbox-inline">
+                    <input type="checkbox" name="payment_omise_3ds" id="omise_payments_3ds" value="1" class="form-control" {{ payment_omise_3ds ? 'checked="checked"' : '' }} />
+                  </div>
+                </div>
+              </div> <!-- /END .3D-Secure -->
+              <!-- Payment Action -->
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="omise_auto_capture">{{ label_omise_payment_action }}</label>
+                <div class="col-sm-10">
+                  <select name="payment_omise_auto_capture" id="omise_auto_capture" class="form-control">
+                    <option value="1" {{ payment_omise_auto_capture ? 'selected="selected"' : '' }}>{{ text_auto_capture }}</option>
+                    <option value="0" {{ not payment_omise_auto_capture ? 'selected="selected"' : '' }}>{{ text_manual_capture }}</option>
+                  </select>
+                </div>
+              </div> <!-- /END Payment Action -->
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Update tab -->
+      <div class="tab-pane fade" id="tab-update">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-cog"></i>{{ label_tab_plugin_version }}</h3>
+          </div>
+
+          <div class="panel-body text-center">
+            <p id="box-label">{{ text_checking_for_latest_version }}</p>
+            <div style="display: none;" id="omise-update-instruction"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div> <!-- /END .container-fluid -->
+</div> <!-- /END #content -->
+
+<!-- Include Omise's stylesheet -->
+<link rel="stylesheet" type="text/css" href="view/stylesheet/omise.css">
+<script>
+  var url = '{{ versioncheckup_url }}';
+      url = url.replace('&amp;', '&');
+
+  var hasUpdate = function(data) {
+    $("#icon-has-update").show();
+    $("#box-label")
+      .addClass('text-danger')
+      .html('Your Omise-OpenCart version (v'+data.current_version+') is too old.');
+
+    $("#omise-update-instruction")
+      .html('\
+        <div><a href="'+data.released.zipball_url+'" class="btn btn-primary">Download ZIP</a>&nbsp;<a href="'+data.released.tarball_url+'" class="btn btn-primary">Download TAR.GZ</a></div>\
+        <div style="margin-top: 15px;">see more information: <a href="'+data.released.html_url+'">'+data.released.html_url+'</a></div>\
+      ')
+      .show();
+  }
+
+  var isUpToDate = function(data) {
+    $("#icon-up-to-date").show();
+    $("#box-label")
+      .addClass('text-success')
+      .html('Your Omise-OpenCart version (v'+data.current_version+') is up to date.');
+  }
+
+  var isFailed = function(data) {
+    $("#icon-has-error").show();
+    $("#box-label")
+      .addClass('text-danger')
+      .html(data.error_messsage);
+  }
+
+  $.ajax({
+    url: url,
+    type: 'GET',
+    beforeSend: function() {
+      $("#tab-update-spin").show();
+    },
+    success: function(data, textStatus, jqXHR) {
+      $("#tab-update-spin").hide();
+
+      data = $.parseJSON(data);
+
+      if (data.status === "connected" && data.has_update) {
+        hasUpdate(data);
+
+      } else if (data.status === "connected") {
+        isUpToDate(data);
+
+      } else if (data.status === "failed") {
+        isFailed(data);
+      }
+    },
+    error: function(data, textStatus, jqXHR) {
+      $("#icon-has-error").show();
+      $("#box-label")
+          .addClass('text-danger')
+          .html('Failed to connect to the server for get an update.');
+    }
+  });
+</script>
+
+{{ footer }}
